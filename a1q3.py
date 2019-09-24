@@ -97,12 +97,20 @@ def updateBeliefs(a, o, b):
         evidence = 0
     for col in range(0,NUM_COLS):
         for row in range(0,NUM_ROWS):
-            prevStates = TRANSFORMATIONS[COL+1][ROW+1]
+            print("col: " + str(col+1) + " row: " + str(row+1))
+            print("action: " + a)
+            prevStates = TRANSFORMATION[COL+1][ROW+1]
+            print(prevStates)
             beliefPrevState = b[row][col]
-            probOfNewStates = sumNewStateGivenAction(a,) 
+            probOfNewStates = sumNewStateGivenAction(a, prevStates) 
             probEvidenceGivenNewState = OBS_MODEL[evidence][row][col]
-            print("pof " + str(evidence) + "|[" + str(col+1) + "," + str(row+1) + "] is " + str(probEvidenceGivenState))
+            print("pof " + str(evidence) + "|[" + str(col+1) + "," + str(row+1) + "] is " + str(probEvidenceGivenNewState))
     return b
+
+def sumNewStateGivenAction(a, prevStates):
+    sum = 0
+    print(prevStates[a])
+    return sum
 
 # returns True is b is a valid (col, row) coordinate and False otherwise
 def validState(b):

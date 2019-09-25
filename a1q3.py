@@ -203,13 +203,13 @@ def printBS(bs):
 print("case 1")
 BS = pomdp(["up", "up", "up"], [2,2,2])
 printBS(BS);
-#print("case 2")
-#BS = pomdp(["up", "up", "up"], [1,1,1])
-#printBS(BS);
-#print("case 3")
-#BS = pomdp(["right", "right", "up"], [1,1,"end"], [2,3])
-#printBS(BS)
-#print("case 4")
-#BS = pomdp(["up", "right", "right", "right"], [2,2,1,1], [1,1])
-#printBS(BS)
+print("case 2")
+BS = pomdp(["up", "up", "up"], [1,1,1])
+printBS(BS);
+print("case 3")
+BS = pomdp(["right", "right", "up"], [1,1,"end"], [2,3])
+printBS(BS)
+print("case 4")
+BS = pomdp(["up", "right", "right", "right"], [2,2,1,1], [1,1])
+printBS(BS)
 

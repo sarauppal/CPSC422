@@ -120,16 +120,22 @@ def updateBeliefs(a, o, b):
           print(TRANSFORMATION[col+1][row+1][aIndex])
           probOfNewState = sumProbNewStateGivenAction(a, TRANSFORMATION[col+1][row+1][aIndex], b)
           probEvidenceGivenNewState = OBS_MODEL[evidence][row][col]
-          newBeliefState[row][col] = probEvidenceGivenNewState*probOfNewState
+          print("newBeliefState = " + str(probEvidenceGivenNewState) + " * " + str(probOfNewState))
+          newBeliefState[row][col] = round(probEvidenceGivenNewState*probOfNewState, 3)
     return newBeliefState
 
 
 def sumProbNewStateGivenAction(a, probPrevStates, prevStateBeliefs):
     sum = 0
-    #print("summing the probability of current state given action and belief of possible previous states")
-    #print("possible previous states:")
-    #for x in probPrevStates:
-    #   print(x)
+    for x in probPrevStates:
+        prevCol = x[0][0]
+        prevRow = x[0][1]
+        probCurrentGivenPrev = x[1]
+        prevBelief = 0
+        if (prevRow - 1 >= 0 and prevCol >= 0):
+            prevBelief = prevStateBeliefs[prevRow-1][prevCol-1]
+        print("sum += " + str(prevBelief) + " * " + str(probCurrentGivenPrev))
+        sum += prevBelief*probCurrentGivenPrev
     return sum
 
 #checks for "end case and returns 0" otherwise returns the observation unchanged.

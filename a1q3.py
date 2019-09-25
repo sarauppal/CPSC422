@@ -3,6 +3,7 @@
 
 NUM_COLS = 4
 NUM_ROWS = 3
+NUM_ACTIONS = 4
 VALID_STATES = 9
 COL = 0
 ROW = 1
@@ -18,20 +19,20 @@ OBS_2WL = [[0.9, 0.9, 0.1, 0.9],[0.9, 0.0, 0.1, 0.0],[0.9, 0.9, 0.1, 0.0]]
 #obs end
 OBS_END = [[0.0, 0.0, 0.0, 0.0],[0.0, 0.0, 0.0, 1.0],[0.0, 0.0, 0.0, 1.0]]
 OBS_MODEL = [OBS_END, OBS_1WL, OBS_2WL]
-#[currentState][previousState] = P(currentState | action, previousState)
-#state = [col, row]
-#[col][row][action][]
-#source https://stackoverflow.com/questions/6667201/how-to-define-a-two-dimensional-array-in-python
-TRANSFORMATION = []
-w, h = NUM_ROWS+1, NUM_COLS+1;
-base = [[[[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0]],
-        [[[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0]],
-        [[[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0]],
-        [[[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0]]
-       ]
-print("initializing transformation")
-TRANSFORMATION = [[ base for x in range(w)] for y in range(h)]
 
+
+#source for initializing a multi dimensional matrix in python https://stackoverflow.com/questions/6667201/how-to-define-a-two-dimensional-array-in-python
+TRANSFORMATION = []
+w  = NUM_ROWS+1
+h = NUM_COLS+1
+d = NUM_ACTIONS+1;
+base = [[[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0], [[0,0], 0.0]]
+TRANSFORMATION = [[[ base for x in range(w)] for y in range(h)] for z in range(d)]
+
+
+# let current state be defined by [col][row]
+# TRANSFORMATION[col][row][action]
+#       = [prevState, p(currentState | action, prevState)]
 TRANSFORMATION[1][1][UP] = [[[1,2], 0.0], [[1,1], 0.1], [[2,1], 0.1]]
 TRANSFORMATION[1][1][DOWN] = [[[1,2], 0.8], [[1,1], 0.9], [[2,1], 0.1]]
 TRANSFORMATION[1][1][LEFT] = [[[1,2], 0.1], [[1,1], 0.9], [[2,1], 0.8]]
@@ -94,36 +95,51 @@ TRANSFORMATION[4][3][RIGHT] = [[[3,3], 0.8]]
 # e: sequence of observations
 # b: belief state [col, row], default unknown
 def pomdp(a, o, b = [0, 0] ):
-    #up = "up"
-    #newDict = {}
-    #newDict = TRANSFORMATION[1][1]
-    #print(TRANSFORMATION[1][1])
     beliefStateDistribution = initBeliefs(b)
     for i in range(0,len(a)):
         beliefStateDistribution = updateBeliefs(a[i], o[i], beliefStateDistribution)
     return beliefStateDistribution
 
+#inputs:
+#a: single action
+#o: single observation
+#b: current belief state distirbution
+#returns an update belief state distribution given the inputs
 def updateBeliefs(a, o, b):
-    evidence = o
+    evidence = getEvidenceValue(o)
+    if (o == "end"):
+        evidence = 0
+    aIndex = getActionIndex(a)
     newBeliefState = [[0.0, 0.0, 0.0, 0.0],
                       [0.0, 0.0, 0.0, 0.0],
                       [0.0, 0.0, 0.0, 0.0]]
-    if (o == "end"):
-        evidence = 0
     for col in range(0,NUM_COLS):
       for row in range(0,NUM_ROWS):
-          print("col: " + str(col+1) + " row: " + str(row+1))
+          print("new state: " + str(col + 1) + ", " + str(row + 1))
           print("action: " + a)
-          aIndex = getActionIndex(a)
-          print("action index: " + str(aIndex))
-          prevStates = TRANSFORMATION[col+1][row+1][aIndex]
-          print(prevStates)
-          beliefPrevState = b[row][col]
-          probOfNewStates = sumNewStateGivenAction(a, prevStates)
+          print(TRANSFORMATION[col+1][row+1][aIndex])
+          probOfNewState = sumProbNewStateGivenAction(a, TRANSFORMATION[col+1][row+1][aIndex], b)
           probEvidenceGivenNewState = OBS_MODEL[evidence][row][col]
-          print("pof " + str(evidence) + "|[" + str(col+1) + "," + str(row+1) + "] is " + str(probEvidenceGivenNewState))
-    return b
+          newBeliefState[row][col] = probEvidenceGivenNewState*probOfNewState
+    return newBeliefState
 
+
+def sumProbNewStateGivenAction(a, probPrevStates, prevStateBeliefs):
+    sum = 0
+    #print("summing the probability of current state given action and belief of possible previous states")
+    #print("possible previous states:")
+    #for x in probPrevStates:
+    #   print(x)
+    return sum
+
+#checks for "end case and returns 0" otherwise returns the observation unchanged.
+def getEvidenceValue(observation):
+    if (observation == "end"):
+        return 0
+    else:
+        return observation
+
+#converts an action as a string to it's integer value as defined in constants
 def getActionIndex(a):
     if (a == "up"):
         return UP
@@ -134,10 +150,6 @@ def getActionIndex(a):
     if (a == "right"):
         return RIGHT
     return -1
-
-def sumNewStateGivenAction(a, prevStates):
-    print("sum function to be implemented")
-    return sum
 
 # returns True is b is a valid (col, row) coordinate and False otherwise
 def validState(b):

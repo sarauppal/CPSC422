@@ -98,7 +98,19 @@ def pomdp(a, o, b = [0, 0] ):
     beliefStateDistribution = initBeliefs(b)
     for i in range(0,len(a)):
         beliefStateDistribution = updateBeliefs(a[i], o[i], beliefStateDistribution)
+        normalize(beliefStateDistribution)
     return beliefStateDistribution
+
+def normalize(bsd):
+    sum = 0
+    for col in range(0,NUM_COLS):
+        for row in range(0,NUM_ROWS):
+            sum += bsd[row][col]
+    for col in range(0,NUM_COLS):
+        for row in range(0,NUM_ROWS):
+            bsd[row][col] = bsd[row][col] / sum
+            bsd[row][col] = round(bsd[row][col], 3)
+    return
 
 #inputs:
 #a: single action
@@ -115,13 +127,9 @@ def updateBeliefs(a, o, b):
                       [0.0, 0.0, 0.0, 0.0]]
     for col in range(0,NUM_COLS):
       for row in range(0,NUM_ROWS):
-          print("new state: " + str(col + 1) + ", " + str(row + 1))
-          print("action: " + a)
-          print(TRANSFORMATION[col+1][row+1][aIndex])
           probOfNewState = sumProbNewStateGivenAction(a, TRANSFORMATION[col+1][row+1][aIndex], b)
           probEvidenceGivenNewState = OBS_MODEL[evidence][row][col]
-          print("newBeliefState = " + str(probEvidenceGivenNewState) + " * " + str(probOfNewState))
-          newBeliefState[row][col] = round(probEvidenceGivenNewState*probOfNewState, 3)
+          newBeliefState[row][col] = probEvidenceGivenNewState*probOfNewState
     return newBeliefState
 
 
@@ -134,7 +142,6 @@ def sumProbNewStateGivenAction(a, probPrevStates, prevStateBeliefs):
         prevBelief = 0
         if (prevRow - 1 >= 0 and prevCol >= 0):
             prevBelief = prevStateBeliefs[prevRow-1][prevCol-1]
-        print("sum += " + str(prevBelief) + " * " + str(probCurrentGivenPrev))
         sum += prevBelief*probCurrentGivenPrev
     return sum
 
@@ -161,15 +168,12 @@ def getActionIndex(a):
 def validState(b):
     #check for valid column
     if(b[COL] > NUM_COLS or b[COL] < 1):
-        print("belief state unknown")
         return False
     #check for valid row
     if(b[ROW] > NUM_ROWS or b[ROW] < 1):
-        print("belief state unknown")
         return False
     #check if blacked out square
     if(b[0] == 2 and b[1] == 2):
-        print("belief state unknown")
         return False
     return True
 
@@ -183,8 +187,6 @@ def initBeliefs(b):
           [p, p, p, 0.0]]
     #check for valid observation
     if(validState(b)):
-      print("state is known: ")
-      print(b)
       bs = [[0.0, 0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0, 0.0],
             [0.0, 0.0, 0.0, 0.0]]
